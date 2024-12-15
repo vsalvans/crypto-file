@@ -35,6 +35,11 @@ const generateKey = async (password) => {
  * @param {string} filePath
  */
 export const encryptFile = async (filePath) => {
+    if (filePath.endsWith('.cf')) {
+        console.log('This file has cf extension which means is already encrypted');
+        return;
+    }
+
     const ui = readline.createInterface({ input: stdin, output: stdout });
     const password = await ui.question("Enter the password to encrypt: ");
 
@@ -47,12 +52,17 @@ export const encryptFile = async (filePath) => {
     );
 
     await fs.writeFile(filePath, Buffer.from(encryptedFile));
+    await fs.rename(filePath, `${filePath}.cf`);
 }
 
 /**
  * @param {string} filePath
  */
 export const decryptFile = async (filePath) => {
+    if (!filePath.endsWith('.cf')) {
+        console.log('This file doesn\'t have a cf extension which means is not encrypted');
+        return;
+    }
     const encryptedFile = await fs.readFile(filePath);
     const ui = readline.createInterface({ input: stdin, output: stdout });
 
@@ -69,6 +79,7 @@ export const decryptFile = async (filePath) => {
             );
 
             await fs.writeFile(filePath, Buffer.from(file));
+            await fs.rename(filePath, filePath.slice(0, -3));
             success = true;
         } catch (e) {
             console.error('Invalid password');
